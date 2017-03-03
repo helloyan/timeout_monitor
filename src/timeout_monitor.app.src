@@ -1,0 +1,16 @@
+{application, timeout_monitor,
+ [{description, "超时监控服务器"},
+  {vsn, "1.0.0"},
+  {registered, []},
+  {mod, { timeout_monitor_app, []}},
+  {applications,
+   [kernel,
+    stdlib
+   ]},
+  {env,[]},
+  {modules, []},
+
+  {maintainers, []},
+  {licenses, []},
+  {links, []}
+ ]}.
