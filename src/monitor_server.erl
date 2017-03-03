@@ -94,7 +94,7 @@ handle_call(_Request, _From, #state{count = Count, interval = Interval, next_tim
     %% 在下次超时消息之前到来，补齐剩下的超时时间
     Time when Time < Stamp ->
       {reply, ignore, State, Stamp - get_timestamp()};
-    %% 剩余应该就是等于了，那就按照收到超时消息的方式来
+    %% 剩余应该就是等于了，那就按照收到超时消息的方式来，但是保守起见，不发消息给被监控进程
     _ -> {reply, ignore, State#state{count = Count + 1, next_timestamp = get_timestamp() + Interval}, Interval}
   end.
 
@@ -115,7 +115,7 @@ handle_cast(_Request, #state{count = Count, interval = Interval, next_timestamp 
     Time when Time < Stamp ->
       {noreply, State, Stamp - get_timestamp()};
 
-    %% 剩余应该就是等于了，那就按照收到超时消息的方式来
+    %% 剩余应该就是等于了，那就按照收到超时消息的方式来，但是保守起见，不发消息给被监控进程
     _ -> {noreply, State#state{count = Count + 1, next_timestamp = get_timestamp() + Interval}, Interval}
   end.
 
@@ -161,7 +161,7 @@ handle_info(_Info, #state{count = Count, interval = Interval, next_timestamp = S
     Time when Time < Stamp ->
       {noreply, State, Stamp - get_timestamp()};
 
-    %% 剩余应该就是等于了，那就按照收到超时消息的方式来
+    %% 剩余应该就是等于了，那就按照收到超时消息的方式来，但是保守起见，不发消息给被监控进程
     _ -> {noreply, State#state{count = Count + 1, next_timestamp = get_timestamp() + Interval}, Interval}
   end.
 
