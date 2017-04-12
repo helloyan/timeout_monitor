@@ -71,7 +71,6 @@ start_link(Pid, MonitorType, Interval) ->
   {ok, State :: #state{}} | {ok, State :: #state{}, timeout() | hibernate} |
   {stop, Reason :: term()} | ignore).
 init([Pid, MonitorType, Interval]) ->
-  process_flag(trap_exit, true),
   {ok, #state{pid = Pid, type = MonitorType, interval = Interval, count = 0, next_timestamp = get_timestamp() + Interval}, Interval}.
 
 %%--------------------------------------------------------------------
@@ -138,7 +137,7 @@ handle_cast(_Request, #state{count = Count, interval = Interval, next_timestamp 
 handle_info(timeout, #state{pid = Pid, type = Type, count = Count, interval = Interval} = State) ->
   case is_process_alive(Pid) of
     true ->
-      erlang:send(Pid, {Type, Count + 1}),
+      erlang:send(Pid, {Type, Count + 1, self()}),
       {noreply, State#state{count = Count + 1, next_timestamp = get_timestamp() + Interval}, Interval};
     false ->
       %% 被监控进程已退出
