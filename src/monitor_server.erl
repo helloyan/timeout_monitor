@@ -46,11 +46,11 @@
 %%
 %% @end
 %%--------------------------------------------------------------------
--spec(start_link(Pid :: pid(), MonitorType :: atom(),
+-spec(start_link(Pid :: pid(), MonitorType :: any(),
     Interval :: integer()) ->
   {ok, Pid :: pid()} | ignore | {error, Reason :: term()}).
 start_link(Pid, MonitorType, Interval) ->
-  gen_server:start_link({local, list_to_atom(lists:flatten(io_lib:format("~p-~p", [Pid, MonitorType])))}, ?MODULE, [Pid, MonitorType, Interval], []).
+  gen_server:start_link(?MODULE, [Pid, MonitorType, Interval], []).
 
 %%%===================================================================
 %%% gen_server callbacks

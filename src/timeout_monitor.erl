@@ -22,12 +22,12 @@
 %%% 仅在异常退出时supervisor会重启该server，
 %%%
 %%% Pid : 接收超时消息的进程
-%%% MonitorType ： 标识该超时消息类型，同一进程的标识符应该唯一
+%%% MonitorType ： 标识该超时消息类型
 %%% Interval : 超时间隔，ms
 %%% @end
 %%%===================================================================
 
--spec(start_monitor(Pid :: pid(), MonitorType :: atom(),
+-spec(start_monitor(Pid :: pid(), MonitorType :: any(),
     Interval :: integer()) ->
   {ok, ChildPid :: pid()}).
 start_monitor(Pid, MonitorType, Interval) ->
@@ -38,12 +38,12 @@ start_monitor(Pid, MonitorType, Interval) ->
 %%% 启动 monitor server，仅发送一次超时消息，自我结束
 %%%
 %%% Pid : 接收超时消息的进程
-%%% MonitorType ： 标识该超时消息类型，同一进程的标识符应该唯一
+%%% MonitorType ： 标识该超时消息类型
 %%% Interval : 超时间隔，ms
 %%% @end
 %%%===================================================================
 
--spec(start_once_monitor(Pid :: pid(), MonitorType :: atom(),
+-spec(start_once_monitor(Pid :: pid(), MonitorType :: any(),
     Interval :: integer()) ->
   {ok, ChildPid :: pid()}).
 start_once_monitor(Pid, MonitorType, Interval) ->
