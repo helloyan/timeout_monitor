@@ -11,7 +11,11 @@
 -author("james").
 
 %% API
--export([start_monitor/3, start_once_monitor/3, stop_monitor/1]).
+-export([start_monitor/3,
+  start_monitor/5,
+  start_monitor/6,
+  start_once_monitor/3,
+  stop_monitor/1]).
 
 -define(SUP_SERVER, timeout_monitor_sup).
 
@@ -31,7 +35,31 @@
     Interval :: integer()) ->
   {ok, ChildPid :: pid()}).
 start_monitor(Pid, MonitorType, Interval) ->
-  supervisor:start_child(?SUP_SERVER, [Pid, MonitorType, Interval]).
+  supervisor:start_child(?SUP_SERVER, [Pid, MonitorType, Interval, erlang, send, []]).
+
+%%%===================================================================
+%%% @doc
+%%% 启动 monitor server
+%%% 仅在异常退出时supervisor会重启该server，
+%%%
+%%% Pid : 接收超时消息的进程
+%%% MonitorType ： 标识该超时消息类型
+%%% Interval : 超时间隔，ms
+%%% 回调函数
+%%% @end
+%%%===================================================================
+
+-spec(start_monitor(Pid :: pid(), MonitorType :: any(),
+    Interval :: integer(), Module :: atom(), Function :: atom()) ->
+  {ok, ChildPid :: pid()}).
+start_monitor(Pid, MonitorType, Interval, Module, Function) ->
+  supervisor:start_child(?SUP_SERVER, [Pid, MonitorType, Interval, Module, Function, []]).
+
+-spec(start_monitor(Pid :: pid(), MonitorType :: any(),
+    Interval :: integer(), Module :: atom(), Function :: atom(), Args :: list()) ->
+  {ok, ChildPid :: pid()}).
+start_monitor(Pid, MonitorType, Interval, Module, Function, Args) ->
+  supervisor:start_child(?SUP_SERVER, [Pid, MonitorType, Interval, Module, Function, Args]).
 
 %%%===================================================================
 %%% @doc

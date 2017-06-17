@@ -14,7 +14,7 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/3]).
+-export([start_link/6]).
 
 %% gen_server callbacks
 -export([init/1,
@@ -32,6 +32,9 @@
   pid, % 监控进程pid
   type, % 超时类型
   interval, % 超时间隔
+  module, %% 回调模块
+  function, %% 回调函数
+  args, %% 参数
   count, % 超时计次
   next_timestamp % 下一个超时消息的时间点，避免收到外部干扰消息导致循环失效
 }).
@@ -47,10 +50,10 @@
 %% @end
 %%--------------------------------------------------------------------
 -spec(start_link(Pid :: pid(), MonitorType :: any(),
-    Interval :: integer()) ->
+    Interval :: integer(), Module :: atom(), Function :: atom(), Args :: list()) ->
   {ok, Pid :: pid()} | ignore | {error, Reason :: term()}).
-start_link(Pid, MonitorType, Interval) ->
-  gen_server:start_link(?MODULE, [Pid, MonitorType, Interval], []).
+start_link(Pid, MonitorType, Interval, Module, Function, Args) ->
+  gen_server:start_link(?MODULE, [Pid, MonitorType, Interval, Module, Function, Args], []).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -70,8 +73,8 @@ start_link(Pid, MonitorType, Interval) ->
 -spec(init(Args :: term()) ->
   {ok, State :: #state{}} | {ok, State :: #state{}, timeout() | hibernate} |
   {stop, Reason :: term()} | ignore).
-init([Pid, MonitorType, Interval]) ->
-  {ok, #state{pid = Pid, type = MonitorType, interval = Interval, count = 0, next_timestamp = get_timestamp() + Interval}, Interval}.
+init([Pid, MonitorType, Interval, Module, Function, Args]) ->
+  {ok, #state{pid = Pid, type = MonitorType, interval = Interval, module = Module, function = Function, args = Args, count = 0, next_timestamp = get_timestamp() + Interval}, Interval}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -134,10 +137,10 @@ handle_cast(_Request, #state{count = Count, interval = Interval, next_timestamp 
   {stop, Reason :: term(), NewState :: #state{}}).
 
 %% 收到设定的超时信息
-handle_info(timeout, #state{pid = Pid, type = Type, count = Count, interval = Interval} = State) ->
+handle_info(timeout, #state{pid = Pid, type = Type, count = Count, module = Module, function = Function, args = Args, interval = Interval} = State) ->
   case is_process_alive(Pid) of
     true ->
-      erlang:send(Pid, {Type, Count + 1, self()}),
+      apply(Module, Function, [Pid, {Type, Count + 1, self()}] ++ Args),
       {noreply, State#state{count = Count + 1, next_timestamp = get_timestamp() + Interval}, Interval};
     false ->
       %% 被监控进程已退出
